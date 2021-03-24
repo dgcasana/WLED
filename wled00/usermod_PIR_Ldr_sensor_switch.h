@@ -70,32 +70,18 @@ private:
   // current PIR sensor pin state
   byte m_PIRsensorPinState = LOW;
   // PIR sensor enabled - ISR attached
-  // PIR sensor enabled - ISR attached
-//max time must on with light day
-int t_maxTimeOn = (10*60*1000);
-//max time trggered
-uint32_t t_disablePIR = 0;
-//time to be diseabled
-int t_diseableTime = (60*60*1000);
-//max time triggered
-bool t_maxtimeTrig;
-// PIR sensor enabled
   bool m_PIRenabled = true;
   // state if serializeConfig() should be called
   bool m_updateConfig = false;
   // define analog pin
-const int LIGHT_PIN = A0; 
-// current light value
-int m_lightValue = 0;
-// there are light enought
-bool m_lightEnought = false; 
-// light treshold
-int m_lightTreshold = 250;
-// MQTT Topic
-#define MQTT_TOPIC "/motion"
-int prevState = LOW;
-//light activated by PIR
-bool m_pirActivated = false;
+  const int LIGHT_PIN = A0; 
+  // current light value
+  int m_lightValue = 0;
+  // there are light enought
+  bool m_lightEnought = false; 
+  // light treshold
+  int m_lightTreshold = 250;
+
 
   /**
    * return or change if new PIR sensor state is available
@@ -180,20 +166,7 @@ bool m_pirActivated = false;
       m_offTimerStart = 0;
       return true;
     }
-    else if (m_offTimerStart > 0 && (millis() - m_offTimerStart > t_maxTimeOn) && m_lightEnought)
-        {
-          t_maxtimeTrig = true;
-          t_disablePIR = millis();
-          //m_pirActivated = false;
-          switchStrip(false);
-          m_PIRenabled = false;
-          colorUpdated(NotifyUpdateMode);
-        }
-    if (t_maxtimeTrig && (t_disablePIR > 0 && millis() - t_disablePIR > t_diseableTime))
-      {
-        t_maxtimeTrig = false;
-         m_PIRenabled = true;
-      }
+    
     return false;
   }
 
@@ -311,6 +284,7 @@ after <input type=\"number\" min=\"1\" max=\"720\" value=\"";
     {
       infoArr.add("inactive");
     }
+    m_lightValue = analogRead(LIGHT_PIN);
     //this code adds "u":{"&#x23F2; Ldr sensor data":uiDomString} to the info object
     uiDomString = "&#x23F2; LDR treshold adjust<span style=\"display:block;padding-left:25px;\">\
 after <input type=\"number\" min=\"1\" max=\"1024\" value=\"";
