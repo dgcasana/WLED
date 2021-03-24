@@ -1,11 +1,16 @@
-# PIR sensor switch
+# PIR & Ldr sensor switch
 
-This usermod-v2 modification allows the connection of a PIR sensor to switch on the LED strip when motion is detected. The switch-off occurs ten minutes after no more motion is detected.
+This is an update to "PIR sensor switch" from @gegu because version 0.11.1 uses Preset instead of Macros.
+This version uses a PIR sensor to activate the led strip and a Ldr to trigger between NightLight or "Party-Ligth".
+
 
 _Story:_
 
-I use the PIR Sensor to automatically turn on the WLED analog clock in my home office room when I am there.
-The LED strip is switched [using a relay](https://github.com/Aircoookie/WLED/wiki/Control-a-relay-with-WLED) to keep the power consumption low when it is switched off.
+I use the PIR sensor to activate my son's night light, the operation is as follows:
+When detecting movement if there is enough light (it is daytime) a Preset from 2 to 6 is randomly activated, in this way it is very easy to choose the effect that you like the most and show off your WLED.
+
+In case there is not enough light (my son gets up at night)
+Preset1 is activated so Preset 1 is NightLight
 
 ## Webinterface
 
@@ -14,6 +19,7 @@ The info page in the web interface shows the items below
 - the state of the sensor. By clicking on the state the sensor can be deactivated/activated. Changes persist after a reboot.
 **I recommend to deactivate the sensor before an OTA update and activate it again afterwards**.
 - the remaining time of the off timer. 
+- the amount of light from the Ldr (0-1024), you can adjust the treshold.
 
 ## JSON API
 
@@ -23,22 +29,27 @@ The usermod supports the following state changes:
 |------------|-------------|---------------------------------|
 | PIRenabled | bool        | Deactivdate/activate the sensor |
 | PIRoffSec  | 60 to 43200 | Off timer seconds               |
+| LDRadjust  | 0 to 1024   | Ldr treshold               |
 
  Changes also persist after a reboot.
 
 ## Sensor connection
 
-My setup uses an HC-SR501 sensor, a HC-SR505 should also work.
+My setup uses an AM312 sensor,I do not recommend using SR602 because it is too sensitive, the underfloor heating activated it, it almost drives me crazy.
+And a LDR  with a pulldown resistor(10K) at input A0, the connection is very simple.
 
-The usermod uses GPIO13 (D1 mini pin D7) for the sensor signal. 
+Gnd---<<10K>>---T---(LDR)---Vcc (3v3)
+                |
+                A0
+
+The usermod uses A0 for the Ldr signal and GPIO13 (D1 mini pin D7) for the PIR sensor signal. 
 [This example page](http://www.esp8266learning.com/wemos-mini-pir-sensor-example.php) describes how to connect the sensor.
 
-Use the potentiometers on the sensor to set the time-delay to the minimum and the sensitivity to about half, or slightly above.
 
 ## Usermod installation
 
-1. Copy the file `usermod_PIR_sensor_switch.h` to the `wled00` directory.
-2. Register the usermod by adding `#include "usermod_PIR_sensor_switch.h"` in the top and `registerUsermod(new PIRsensorSwitch());` in the bottom of `usermods_list.cpp`.
+1. Copy the file `usermod_PIR_Ldr_sensor_switch.h` to the `wled00` directory.
+2. Register the usermod by adding `#include "usermod_PIR_Ldr_sensor_switch.h"` in the top and `registerUsermod(new PIRsensorSwitch());` in the bottom of `usermods_list.cpp`.
 
 Example **usermods_list.cpp**:
 
@@ -57,7 +68,7 @@ Example **usermods_list.cpp**:
 //#include "usermod_v2_example.h"
 //#include "usermod_temperature.h"
 //#include "usermod_v2_empty.h"
-#include "usermod_PIR_sensor_switch.h"
+#include "usermod_PIR_Ldr_sensor_switch.h"
 
 void registerUsermods()
 {
@@ -106,4 +117,4 @@ class MyUsermod : public Usermod {
 };
 ```
 
-Have fun - @gegu
+Have fun - @gegu & @dgcasana
