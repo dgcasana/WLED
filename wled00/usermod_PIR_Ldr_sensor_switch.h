@@ -67,6 +67,8 @@ private:
   uint32_t m_switchOffDelay = 600000;
   // off timer start time
   uint32_t m_offTimerStart = 0;
+  // start timer
+  uint32_t t_startTime = 0;
   // current PIR sensor pin state
   byte m_PIRsensorPinState = LOW;
   // PIR sensor enabled - ISR attached
@@ -122,6 +124,7 @@ bool m_pirActivated = false;
   if (switchOn && bri == 0)
     {
       m_lightEnought = m_lightValue > m_lightTreshold ? true:false;
+      t_startTime = millis();
       if (m_lightEnought){
         applyPreset(random(2,6)); // preset 2-6 para cuando sea de dia.
         colorUpdated(NotifyUpdateMode);
@@ -180,19 +183,21 @@ bool m_pirActivated = false;
       m_offTimerStart = 0;
       return true;
     }
-    else if (m_offTimerStart > 0 && (millis() - m_offTimerStart > t_maxTimeOn) && m_lightEnought)
+    else if (t_startTime > 0 && (millis() - t_startTime > t_maxTimeOn) && m_lightEnought)
         {
           t_maxtimeTrig = true;
           t_disablePIR = millis();
           //m_pirActivated = false;
           switchStrip(false);
           m_PIRenabled = false;
+          detachInterrupt(PIRsensorPin);
           colorUpdated(NotifyUpdateMode);
         }
     if (t_maxtimeTrig && (t_disablePIR > 0 && millis() - t_disablePIR > t_diseableTime))
       {
         t_maxtimeTrig = false;
          m_PIRenabled = true;
+         attachInterrupt(digitalPinToInterrupt(PIRsensorPin), ISR_PIRstateChange, CHANGE);
       }
     return false;
   }
@@ -266,7 +271,8 @@ public:
     else
     {
       uiDomString += "true";
-      sensorStateInfo = "Disabled !";
+      if(t_maxtimeTrig) sensorStateInfo = "1H Disabled";
+      else sensorStateInfo = "Disabled !";
     }
     uiDomString += "});return false;\">";
     uiDomString += sensorStateInfo;
